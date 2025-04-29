@@ -1,0 +1,40 @@
+import React, { useState, useEffect } from 'react';
+import Terminal from '../components/Terminal';
+import TerminalHeader from '../components/TerminalHeader';
+import profileData from '../data/profile.json';
+import AsciiArt from '../components/AsciiArt';
+
+const Home: React.FC = () => {
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  
+  // Add animation when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Custom command handlers
+  const commandHandlers = {
+    logo: () => {
+      return <AsciiArt className="my-2" />;
+    }
+  };
+
+  return (
+    <div className={`h-screen w-screen bg-terminal-background overflow-hidden flex flex-col transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="w-full h-full flex flex-col shadow-lg">
+        <TerminalHeader title={`${profileData.personalInfo.name.split(' ')[0].toLowerCase()}@portfolio:~`} />
+        <Terminal 
+          welcomeMessage={<AsciiArt className="mb-4" />}
+          prompt={`${profileData.personalInfo.name.split(' ')[0].toLowerCase()}@portfolio:~$`}
+          commandHistory={commandHandlers}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Home; 

@@ -1,0 +1,132 @@
+{
+  "personalInfo": {
+    "name": "Surya Kiran Penumatcha",
+    "email": "suryaraju67@gmail.com",
+    "linkedin": "linkedin.com/in/surya-penumatcha",
+    "github": "github.com/surya-kiran27"
+  },
+  "about": {
+    "summary": "I'm a full stack developer with expertise in JavaScript, TypeScript, Node.js, React, and microservices architecture. I'm passionate about building scalable applications and infrastructure optimization. My experience spans across AWS cloud technologies, CI/CD pipelines, and API development."
+  },
+  "skills": {
+    "languages": ["JavaScript", "TypeScript", "GO", "Python", "HTML5/CSS3"],
+    "frontend": ["React.js", "HTML5", "CSS3"],
+    "backend": ["Node.js", "Express.js", "API Development", "Microservices Architecture"],
+    "databases": ["PostgreSQL", "MongoDB"],
+    "cloudDevOps": ["AWS", "Docker", "GitHub Actions", "CI/CD Pipelines"]
+  },
+  "experience": [
+    {
+      "role": "Full Stack Developer",
+      "company": "KernelAI (Primer)",
+      "location": "Remote",
+      "startDate": "March 2024",
+      "endDate": "March 2025",
+      "highlights": [
+        "Led the move to AWS CDK, making infrastructure more manageable and cutting AWS costs by 50%.",
+        "Rearchitected AI pipeline orchestration on AWS Step Functions, enabling higher document throughput.",
+        "Developed GitHub Actions workflows that auto-generate Python and Go CDKs, reducing manual overhead.",
+        "Troubleshot and resolved critical microservice errors under tight deadlines."
+      ]
+    },
+    {
+      "role": "Software Engineer",
+      "company": "Fashion Cloud",
+      "location": "Amsterdam, Netherlands",
+      "startDate": "Oct 2022",
+      "endDate": "Feb 2024",
+      "highlights": [
+        "Resolved a longstanding bug in the image processing pipeline that had caused corruption issues for months.",
+        "Migrated ETL workflows to AWS Step Functions and EC2, enhancing scalability and error recovery.",
+        "Developed a real-time ETL pipeline visualization dashboard for better operational monitoring."
+      ]
+    },
+    {
+      "role": "Full Stack Developer",
+      "company": "People Link Unified Communications",
+      "location": "Hyderabad, India",
+      "startDate": "Aug 2021",
+      "endDate": "March 2022",
+      "highlights": [
+        "Led a team of 3 junior developers, providing technical guidance and code reviews.",
+        "Spearheaded the adoption of CI/CD pipelines using Docker and GitHub Actions.",
+        "Developed secure, scalable RESTful APIs for video conferencing products."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Osmania University",
+      "degree": "BE in Computer Science Engineering",
+      "graduationDate": "June 2020"
+    }
+  ],
+  "projects": [
+    {
+      "name": "WebMonitors",
+      "shortDescription": "A SaaS product that lets users automatically monitor websites with visual, HTML, and content-based checks. Serves 100+ users.",
+      "url": "https://webmonitors.io",
+      "techStack": ["Node.js", "Next.js", "BullMQ", "Redis", "Puppeteer"],
+      "detailedDescription": "A SaaS product that lets users automatically monitor websites with visual, HTML, and content-based checks. The service notifies users when their monitored websites change or go down.",
+      "features": [
+        "Visual monitoring with screenshot comparisons",
+        "Content change detection for specific elements",
+        "Uptime monitoring with instant notifications",
+        "Customizable monitoring schedules",
+        "Email and webhook notifications"
+      ],
+      "technicalDetails": {
+        "frontend": "Next.js with React",
+        "backend": "Node.js REST APIs",
+        "jobProcessing": "BullMQ with Redis",
+        "webCrawling": "Puppeteer",
+        "hosting": "AWS infrastructure"
+      },
+      "businessImpact": "Currently serves 100+ users who rely on it for critical website monitoring."
+    },
+    {
+      "name": "ScrapeLoop",
+      "shortDescription": "A Chrome extension and SaaS that turns any website into a data source with point-and-click scraping.",
+      "additionalInfo": "Supports webhooks, Google Sheets, and Airtable integrations.",
+      "url": "https://scrapeloop.com",
+      "techStack": ["Node.js", "Next.js", "BullMQ", "Redis", "Puppeteer"],
+      "detailedDescription": "A Chrome extension and SaaS platform that enables non-technical users to extract data from websites using a simple point-and-click interface, without writing any code.",
+      "features": [
+        "Visual data selector for easy scraping",
+        "Scheduled data extraction",
+        "Export to various formats",
+        "Integration with Google Sheets",
+        "Airtable integration",
+        "Webhook notifications for data updates"
+      ],
+      "technicalDetails": {
+        "chromeExtension": "JavaScript",
+        "frontend": "Next.js with React",
+        "backend": "Node.js microservices",
+        "jobProcessing": "BullMQ with Redis",
+        "webCrawling": "Puppeteer"
+      }
+    },
+    {
+      "name": "CommodityPriceAPI",
+      "shortDescription": "A simple JSON API providing real-time and historical prices for 130+ commodities, including Crude Oil, Gold, and Natural Gas.",
+      "status": "acquired",
+      "url": "https://commoditypriceapi.com",
+      "detailedDescription": "A simple JSON API providing real-time and historical prices for over 130 commodities, including Crude Oil, Gold, and Natural Gas.",
+      "features": [
+        "RESTful API endpoints for 130+ commodities",
+        "Real-time price updates",
+        "Historical price data access",
+        "Multiple data formats support",
+        "Developer-friendly documentation"
+      ],
+      "technicalDetails": {
+        "backend": "Node.js",
+        "database": "Time-series database for historical prices",
+        "api": "RESTful endpoints with comprehensive documentation"
+      },
+      "outcome": "This project was successfully acquired, demonstrating its market value and technical merit."
+    }
+  ],
+  "welcomeMessage": "\n======================================================\n  Welcome to Surya Kiran Penumatcha's Portfolio Terminal\n======================================================\n\nType 'help' to see available commands.\n"
+} 
