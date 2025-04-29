@@ -562,7 +562,7 @@ const Terminal = ({
             href="https://drive.google.com/file/d/1k5MoiZ1BjONUCyMlyhwxhSDwYw6TuEZg/view?usp=sharing" 
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-4 py-2 text-black bg-terminal-bright-green rounded hover:bg-terminal-green transition-colors"
+            className="inline-block px-4 py-2 underline bg-terminal-bright-green rounded hover:bg-terminal-green transition-colors"
           >
             Download Resume (PDF)
           </a>
