@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 type TerminalHeaderProps = {
   title?: string;
+  onMaximize?: () => void;
+  isMaximized?: boolean;
 };
 
 const TerminalHeader: React.FC<TerminalHeaderProps> = ({ 
-  title = "portfolio@terminal" 
+  title = "portfolio@terminal",
+  onMaximize,
+  isMaximized = false,
 }) => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   
@@ -25,12 +29,53 @@ const TerminalHeader: React.FC<TerminalHeaderProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle terminal controls
+  const handleClose = () => {
+    // Since this is a portfolio site, we'll just minimize instead of closing
+    document.body.classList.add('terminal-minimized');
+    // Add a small bounce animation to indicate it's minimized
+    setTimeout(() => {
+      document.body.classList.remove('terminal-minimized');
+    }, 300);
+  };
+
+  const handleMinimize = () => {
+    document.body.classList.add('terminal-minimized');
+    // Add a small bounce animation
+    setTimeout(() => {
+      document.body.classList.remove('terminal-minimized');
+    }, 300);
+  };
+
+  const handleMaximize = () => {
+    if (onMaximize) {
+      onMaximize();
+    }
+    if (!isMaximized) {
+      document.body.classList.add('terminal-maximized');
+    } else {
+      document.body.classList.remove('terminal-maximized');
+    }
+  };
+
   return (
-    <div className={`terminal-header bg-terminal-background border-b border-gray-700 px-4 py-2 ${isMobile ? 'px-3 py-1' : ''}`}>
+    <div className={`terminal-header bg-terminal-background border-b border-gray-700 px-4 py-2 ${isMobile ? 'px-3 py-1' : ''} ${isMaximized ? 'terminal-header-maximized' : ''}`}>
       <div className="terminal-controls flex gap-2">
-        <div className="terminal-control terminal-control-close hover:opacity-75 hover:scale-110 transition-all cursor-pointer"></div>
-        <div className="terminal-control terminal-control-minimize hover:opacity-75 hover:scale-110 transition-all cursor-pointer"></div>
-        <div className="terminal-control terminal-control-maximize hover:opacity-75 hover:scale-110 transition-all cursor-pointer"></div>
+        <div 
+          className="terminal-control terminal-control-close hover:opacity-75 hover:scale-110 transition-all cursor-pointer"
+          onClick={handleClose}
+          title="Close"
+        ></div>
+        <div 
+          className="terminal-control terminal-control-minimize hover:opacity-75 hover:scale-110 transition-all cursor-pointer"
+          onClick={handleMinimize}
+          title="Minimize"
+        ></div>
+        <div 
+          className="terminal-control terminal-control-maximize hover:opacity-75 hover:scale-110 transition-all cursor-pointer"
+          onClick={handleMaximize}
+          title={isMaximized ? "Restore" : "Maximize"}
+        ></div>
       </div>
       <div className={`terminal-title font-mono text-center text-terminal-bright-white flex items-center ${isMobile ? 'text-xs' : ''}`}>
         <span className="mr-2 text-terminal-bright-green">❯</span>

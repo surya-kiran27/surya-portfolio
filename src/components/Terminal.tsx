@@ -111,6 +111,7 @@ type TerminalProps = {
   prompt?: string;
   initialCommands?: Command[];
   commandHistory?: Record<string, () => string | React.ReactNode>;
+  isMaximized?: boolean;
 };
 
 const Terminal = ({
@@ -118,6 +119,7 @@ const Terminal = ({
   prompt = "guest@portfolio:~$",
   initialCommands = [],
   commandHistory = {},
+  isMaximized = false,
 }: TerminalProps) => {
   const [commands, setCommands] = useState<Command[]>(initialCommands);
   const [currentInput, setCurrentInput] = useState<string>('');
@@ -130,6 +132,7 @@ const Terminal = ({
   const [sudoTimeLeft, setSudoTimeLeft] = useState<number>(30);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
+  const [isMatrixActive, setIsMatrixActive] = useState<boolean>(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -244,36 +247,50 @@ const Terminal = ({
 
   // Countdown timer for sudo mode
   useEffect(() => {
+    // Clear any existing timer first
+    if (sudoTimerRef.current) {
+      clearInterval(sudoTimerRef.current);
+      sudoTimerRef.current = null;
+    }
+
+    // Only start a new timer if sudo mode is active and time is remaining
     if (sudoMode && sudoTimeLeft > 0) {
       sudoTimerRef.current = setInterval(() => {
         setSudoTimeLeft(prev => {
-          if (prev <= 1) {
+          const newTime = prev - 1;
+          if (newTime <= 0) {
+            // Clear the timer and end sudo mode
             if (sudoTimerRef.current) {
               clearInterval(sudoTimerRef.current);
+              sudoTimerRef.current = null;
             }
+            // Use setTimeout to avoid state update conflicts
+            setTimeout(() => endSudoMode(), 0);
             return 0;
           }
-          return prev - 1;
+          return newTime;
         });
       }, 1000);
+
+      // Cleanup function
+      return () => {
+        if (sudoTimerRef.current) {
+          clearInterval(sudoTimerRef.current);
+          sudoTimerRef.current = null;
+        }
+      };
+    }
+  }, [sudoMode, sudoTimeLeft]); // Dependencies include both sudoMode and sudoTimeLeft
+
+  // Function to clean up sudo mode state
+  const cleanupSudoMode = () => {
+    // Clear any existing timers
+    if (sudoTimerRef.current) {
+      clearInterval(sudoTimerRef.current);
+      sudoTimerRef.current = null;
     }
     
-    return () => {
-      if (sudoTimerRef.current) {
-        clearInterval(sudoTimerRef.current);
-      }
-    };
-  }, [sudoMode, sudoTimeLeft]);
-
-  // Reset sudo mode when timer reaches 0
-  useEffect(() => {
-    if (sudoMode && sudoTimeLeft === 0) {
-      endSudoMode();
-    }
-  }, [sudoTimeLeft, sudoMode]);
-
-  // Function to end sudo mode and clean up
-  const endSudoMode = () => {
+    // Remove visual effects
     document.body.classList.remove('sudo-mode');
     document.body.classList.remove('matrix-effect');
     
@@ -288,30 +305,22 @@ const Terminal = ({
     if (matrixKeyframes && matrixKeyframes.parentNode) {
       matrixKeyframes.parentNode.removeChild(matrixKeyframes);
     }
+  };
+
+  // Function to end sudo mode and clean up
+  const endSudoMode = () => {
+    // Use the cleanup function
+    cleanupSudoMode();
     
-    // Reset sudo mode
+    // Reset sudo mode state
     setSudoMode(false);
     setSudoTimeLeft(30);
-    
-    // Clear the terminal as part of session expiry
-    setCommands([]);
     
     // Add a "session expired" message to the terminal
     setCommands(cmds => [...cmds, {
       command: 'system',
       output: <span className="text-terminal-bright-red">ALERT: Privileged session expired. Returning to normal user mode.</span>
     }]);
-    
-    // Clear any remaining timeouts and intervals
-    if (matrixTimeoutRef.current) {
-      clearTimeout(matrixTimeoutRef.current);
-      matrixTimeoutRef.current = null;
-    }
-    
-    if (matrixIntervalRef.current) {
-      clearInterval(matrixIntervalRef.current);
-      matrixIntervalRef.current = null;
-    }
   };
 
   // Typing animation for initial help command
@@ -337,6 +346,19 @@ const Terminal = ({
       return () => clearInterval(typingInterval);
     }
   }, [isInitialCommandsShown]);
+
+  // Add cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupSudoMode();
+      if (matrixTimeoutRef.current) {
+        clearTimeout(matrixTimeoutRef.current);
+      }
+      if (matrixIntervalRef.current) {
+        clearInterval(matrixIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Default command handlers
   const defaultCommands: Record<string, () => string | React.ReactNode> = {
@@ -747,17 +769,9 @@ const Terminal = ({
       return '';
     },
     sudo: () => {
-      // If already in sudo mode, just reset the timer without changing the state
+      // If already in sudo mode, just reset the timer without cleaning up
       if (sudoMode) {
-        // Clear existing timer if any
-        if (sudoTimerRef.current) {
-          clearInterval(sudoTimerRef.current);
-          sudoTimerRef.current = null;
-        }
-        
-        // Reset timer
         setSudoTimeLeft(30);
-        
         return (
           <div className="animate-fadeIn">
             <p className="text-terminal-bright-green mb-2 font-bold text-center">
@@ -767,6 +781,9 @@ const Terminal = ({
           </div>
         );
       }
+      
+      // Clean up any existing state before starting new sudo session
+      cleanupSudoMode();
       
       // Enable sudo mode
       setSudoMode(true);
@@ -787,7 +804,7 @@ const Terminal = ({
       
       tryPlayAudio();
       
-      // Add Matrix effect to body temporarily
+      // Add Matrix effect to body
       document.body.classList.add('sudo-mode');
       
       return (
@@ -867,8 +884,14 @@ const Terminal = ({
       if (!sudoMode) {
         return "Permission denied: This command requires elevated privileges. Try 'sudo' first.";
       }
+
+      if (isMatrixActive) {
+        return "Matrix simulation already in progress. Please wait for current simulation to complete.";
+      }
       
-      // Add matrix rain effect to body temporarily
+      setIsMatrixActive(true);
+      
+      // Add matrix rain effect to body
       document.body.classList.add('matrix-effect');
       
       // Create matrix rain container
@@ -901,7 +924,6 @@ const Terminal = ({
           text-shadow: 0 0 5px #0f0;
         `;
         
-        // Add random characters to the stream
         const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモラリルレロワヲン";
         const streamLength = Math.floor(Math.random() * 20) + 10;
         
@@ -927,95 +949,10 @@ const Terminal = ({
       document.head.appendChild(keyframes);
       document.body.appendChild(matrixContainer);
       
-      // Use a countdown from 10 seconds
-      const matrixDuration = 10;
-      let timeLeft = matrixDuration;
-      
-      const updateCountdown = () => {
-        setCommands(cmds => {
-          const lastCmd = cmds[cmds.length - 1];
-          if (lastCmd && lastCmd.command === 'matrix') {
-            const updatedCmds = [...cmds.slice(0, -1)];
-            updatedCmds.push({
-              command: 'matrix',
-              output: (
-                <div className="animate-fadeIn">
-                  <p className="text-terminal-bright-green mb-3 text-center font-bold">ENTERING THE MATRIX</p>
-                  <div className="flex justify-center mb-3">
-                    <div className="matrix-code text-center">
-                      <div className="animate-matrix-rain">
-                        {Array(8).fill(0).map((_, i) => (
-                          <div key={i} className="text-terminal-bright-green opacity-80" style={{ animationDelay: `${i * 0.2}s` }}>
-                            {Array(15).fill(0).map((_, j) => (
-                              <span key={j} className="inline-block px-1">
-                                {String.fromCharCode(33 + Math.floor(Math.random() * 94))}
-                              </span>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-terminal-bright-white text-center">
-                    Wake up, Neo...
-                  </p>
-                  <p className="text-terminal-text text-center mt-4">
-                    (Matrix rain effect will end in <span className="text-terminal-bright-red font-bold">{timeLeft}</span> seconds)
-                  </p>
-                </div>
-              )
-            });
-            return updatedCmds;
-          }
-          return cmds;
-        });
-      };
-      
-      // Initial display
-      updateCountdown();
-      
-      // Clean up any existing matrix interval
-      if (matrixIntervalRef.current) {
-        clearInterval(matrixIntervalRef.current);
-      }
-      
-      // Update the countdown every second
-      matrixIntervalRef.current = setInterval(() => {
-        timeLeft -= 1;
-        if (timeLeft <= 0) {
-          if (matrixIntervalRef.current) {
-            clearInterval(matrixIntervalRef.current);
-            matrixIntervalRef.current = null;
-          }
-          // Clean up matrix effect if sudo mode is still active
-          if (document.body.classList.contains('matrix-effect')) {
-            document.body.classList.remove('matrix-effect');
-            if (document.body.contains(matrixContainer)) {
-              document.body.removeChild(matrixContainer);
-            }
-            if (document.head.contains(keyframes)) {
-              document.head.removeChild(keyframes);
-            }
-          }
-          
-          // Add a message that the effect has ended
-          setCommands(cmds => [...cmds, {
-            command: 'system',
-            output: <span className="text-terminal-bright-blue">Matrix simulation terminated.</span>
-          }]);
-        } else {
-          updateCountdown();
-        }
-      }, 1000);
-      
-      // Store the timeout for cleanup
-      matrixTimeoutRef.current = setTimeout(() => {
-        if (matrixIntervalRef.current) {
-          clearInterval(matrixIntervalRef.current);
-          matrixIntervalRef.current = null;
-        }
-        
-        // Ensure matrix effect is cleared
+      // Set cleanup timeout
+      const MATRIX_DURATION = 10;
+      setTimeout(() => {
+        // Clean up matrix effect
         document.body.classList.remove('matrix-effect');
         if (document.body.contains(matrixContainer)) {
           document.body.removeChild(matrixContainer);
@@ -1023,7 +960,11 @@ const Terminal = ({
         if (document.head.contains(keyframes)) {
           document.head.removeChild(keyframes);
         }
-      }, matrixDuration * 1000 + 500); // Add a small buffer to ensure cleanup
+        
+        // Remove the matrix command from history
+        setCommands(cmds => cmds.filter(cmd => cmd.command !== 'matrix'));
+        setIsMatrixActive(false);
+      }, MATRIX_DURATION * 1000);
       
       return (
         <div className="animate-fadeIn">
@@ -1047,7 +988,7 @@ const Terminal = ({
             Wake up, Neo...
           </p>
           <p className="text-terminal-text text-center mt-4">
-            (Matrix rain effect will end in <span className="text-terminal-bright-red font-bold">{matrixDuration}</span> seconds)
+            (Matrix rain effect will end in <span className="text-terminal-bright-red font-bold">10</span> seconds)
           </p>
         </div>
       );
@@ -1250,7 +1191,7 @@ const Terminal = ({
   return (
     <div 
       ref={terminalRef} 
-      className={`terminal-container flex-1 overflow-y-auto p-4 font-mono ${sudoMode ? 'sudo-mode' : ''} ${isMobile ? 'touch-manipulation' : ''} ${isKeyboardOpen ? 'keyboard-open' : ''}`}
+      className={`terminal-container flex-1 overflow-y-auto p-4 font-mono ${sudoMode ? 'sudo-mode' : ''} ${isMobile ? 'touch-manipulation' : ''} ${isKeyboardOpen ? 'keyboard-open' : ''} ${isMaximized ? 'terminal-maximized' : ''}`}
       onClick={handleTerminalClick}
     >
       {welcomeMessage && <div className="mb-4">{welcomeMessage}</div>}
@@ -1283,8 +1224,11 @@ const Terminal = ({
       
       {/* Sudo Mode Countdown if active */}
       {sudoMode && (
-        <div className={`fixed ${isMobile ? 'top-2 right-2 text-xs' : 'top-4 right-4'} bg-black bg-opacity-70 text-terminal-bright-green px-3 py-1 rounded-md border border-terminal-bright-green animate-pulse z-50`}>
-          Sudo: <span className="text-terminal-bright-white">{sudoTimeLeft}s</span>
+        <div className={`fixed ${isMobile ? 'bottom-4 right-4 text-xs' : 'bottom-6 right-6'} bg-terminal-background bg-opacity-90 text-terminal-bright-green px-3 py-1 rounded-md border border-terminal-bright-green animate-pulse z-20`}>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 bg-terminal-bright-green rounded-full animate-pulse"></span>
+            <span>Sudo: <span className="text-terminal-bright-white font-bold">{sudoTimeLeft}s</span></span>
+          </div>
         </div>
       )}
       

@@ -8,6 +8,7 @@ const Home: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
+  const [isMaximized, setIsMaximized] = useState<boolean>(false);
   
   // Add animation when component mounts
   useEffect(() => {
@@ -81,14 +82,24 @@ const Home: React.FC = () => {
     }
   };
 
+  // Handle terminal maximize state
+  const handleMaximize = () => {
+    setIsMaximized(!isMaximized);
+  };
+
   return (
     <div className={`h-screen w-screen bg-terminal-background overflow-hidden flex flex-col transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${isMobile ? 'touch-manipulation' : ''}`}>
       <div className="w-full h-full flex flex-col shadow-lg">
-        <TerminalHeader title={`${profileData.personalInfo.name.split(' ')[0].toLowerCase()}@portfolio:~`} />
+        <TerminalHeader 
+          title={`${profileData.personalInfo.name.split(' ')[0].toLowerCase()}@portfolio:~`} 
+          onMaximize={handleMaximize}
+          isMaximized={isMaximized}
+        />
         <Terminal 
           welcomeMessage={<AsciiArt className="mb-4" />}
           prompt={`${profileData.personalInfo.name.split(' ')[0].toLowerCase()}@portfolio:~$`}
           commandHistory={commandHandlers}
+          isMaximized={isMaximized}
         />
       </div>
     </div>
