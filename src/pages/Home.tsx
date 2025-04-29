@@ -6,6 +6,7 @@ import AsciiArt from '../components/AsciiArt';
 
 const Home: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   
   // Add animation when component mounts
   useEffect(() => {
@@ -16,6 +17,21 @@ const Home: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add event listener for resize
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   // Custom command handlers
   const commandHandlers = {
     logo: () => {
@@ -24,7 +40,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className={`h-screen w-screen bg-terminal-background overflow-hidden flex flex-col transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`h-screen w-screen bg-terminal-background overflow-hidden flex flex-col transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${isMobile ? 'touch-manipulation' : ''}`}>
       <div className="w-full h-full flex flex-col shadow-lg">
         <TerminalHeader title={`${profileData.personalInfo.name.split(' ')[0].toLowerCase()}@portfolio:~`} />
         <Terminal 

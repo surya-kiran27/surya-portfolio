@@ -128,12 +128,28 @@ const Terminal = ({
   const [isInitialCommandsShown, setIsInitialCommandsShown] = useState<boolean>(false);
   const [sudoMode, setSudoMode] = useState<boolean>(false);
   const [sudoTimeLeft, setSudoTimeLeft] = useState<number>(30);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const sudoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const matrixTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const matrixIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Check if on mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Add sudo styles to head
   useEffect(() => {
@@ -249,7 +265,7 @@ const Terminal = ({
       return (
         <div>
           <p className="text-terminal-bright-white">Available commands:</p>
-          <ul className="pl-6 list-disc text-terminal-bright-white">
+          <ul className={`${isMobile ? 'pl-3' : 'pl-6'} list-disc text-terminal-bright-white ${isMobile ? 'text-sm' : ''}`}>
             <li><span className="text-terminal-bright-green">about</span> - Learn about me</li>
             <li><span className="text-terminal-bright-green">experience</span> - View my work experience</li>
             <li><span className="text-terminal-bright-green">education</span> - View my education background</li>
@@ -262,11 +278,12 @@ const Terminal = ({
             <li><span className="text-terminal-bright-green">help</span> - Show this help message</li>
             <li><span className="text-terminal-bright-green">sudo</span> - Elevate privileges (use with caution)</li>
           </ul>
-          <div className="mt-3 text-terminal-bright-white">
+          <div className={`mt-3 text-terminal-bright-white ${isMobile ? 'text-sm' : ''}`}>
             <p>Terminal navigation:</p>
-            <ul className="pl-6 list-disc">
+            <ul className={`${isMobile ? 'pl-3' : 'pl-6'} list-disc`}>
               <li><span className="text-terminal-bright-yellow">↑/↓ arrow keys</span> - Navigate through command history</li>
               <li><span className="text-terminal-bright-yellow">Tab</span> - Autocomplete commands</li>
+              {isMobile && <li><span className="text-terminal-bright-yellow">Tap here</span> - Bring up keyboard on mobile</li>}
             </ul>
           </div>
         </div>
@@ -1154,14 +1171,14 @@ const Terminal = ({
   return (
     <div 
       ref={terminalRef} 
-      className={`terminal-container flex-1 overflow-y-auto p-4 font-mono ${sudoMode ? 'sudo-mode' : ''}`}
+      className={`terminal-container flex-1 overflow-y-auto p-4 font-mono ${sudoMode ? 'sudo-mode' : ''} ${isMobile ? 'touch-manipulation' : ''}`}
       onClick={handleTerminalClick}
     >
       {welcomeMessage && <div className="mb-4">{welcomeMessage}</div>}
       
       {/* Command History */}
       {commands.map((cmd, index) => (
-        <div key={index} className="mb-4 animate-fadeIn">
+        <div key={index} className={`mb-${isMobile ? '3' : '4'} animate-fadeIn`}>
           <div className="flex items-center">
             <span className="terminal-prompt mr-2">{prompt}</span>
             <span className="text-terminal-text">{cmd.command}</span>
@@ -1187,9 +1204,17 @@ const Terminal = ({
       
       {/* Sudo Mode Countdown if active */}
       {sudoMode && (
-        <div className="fixed top-4 right-4 bg-black bg-opacity-70 text-terminal-bright-green px-3 py-1 rounded-md border border-terminal-bright-green animate-pulse z-50">
-          Sudo: <span className="text-terminal-bright-red font-bold">{sudoTimeLeft}s</span>
+        <div className={`fixed ${isMobile ? 'top-2 right-2 text-xs' : 'top-4 right-4'} bg-black bg-opacity-70 text-terminal-bright-green px-3 py-1 rounded-md border border-terminal-bright-green animate-pulse z-50`}>
+          Sudo: <span className="text-terminal-bright-white">{sudoTimeLeft}s</span>
         </div>
+      )}
+      
+      {/* Mobile keyboard helper - invisible element that helps maintain focus */}
+      {isMobile && (
+        <div 
+          className="fixed bottom-0 left-0 w-full h-16 opacity-0" 
+          onClick={() => inputRef.current?.focus()}
+        ></div>
       )}
     </div>
   );

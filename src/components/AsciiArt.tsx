@@ -27,12 +27,15 @@ const nameColors = [
 // Component that directly uses the ASCII art
 const AsciiArt: React.FC<{ className?: string }> = ({ className = '' }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const [isSmallMobile, setIsSmallMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   
   // Check if on mobile using window width
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsSmallMobile(width < 375);
     };
     
     // Initial check
@@ -62,6 +65,11 @@ const AsciiArt: React.FC<{ className?: string }> = ({ className = '' }) => {
   // Use the appropriate name ASCII based on screen size
   const displayNameLines = isMobile ? mobileNameLines : nameLines;
   
+  // For very small mobile devices, show an even more compact version
+  const compactDisplayLines = isSmallMobile 
+    ? displayNameLines.filter((_, i) => i % 2 === 0) 
+    : displayNameLines;
+  
   // Determine the maximum number of lines for proper alignment (only if not on mobile)
   const maxLines = !isMobile ? Math.max(profileLines.length, nameLines.length) : 0;
   
@@ -80,8 +88,8 @@ const AsciiArt: React.FC<{ className?: string }> = ({ className = '' }) => {
       <div className="flex flex-wrap text-terminal-bright-green">
         {/* Name ASCII on the left with welcome message */}
         <div className={`w-full ${isMobile ? 'w-full' : 'md:w-1/2'} pr-4 relative`}>
-          <pre className="whitespace-pre font-mono">
-            {displayNameLines.map((line, lineIndex) => (
+          <pre className={`whitespace-pre font-mono ${isSmallMobile ? 'text-xs overflow-x-auto' : ''}`}>
+            {compactDisplayLines.map((line, lineIndex) => (
               <div 
                 key={`name-${lineIndex}`} 
                 className={`${nameColors[lineIndex % nameColors.length]} transition-all hover:text-terminal-bright-green cursor-default`}
@@ -95,8 +103,10 @@ const AsciiArt: React.FC<{ className?: string }> = ({ className = '' }) => {
             ))}
           </pre>
           {/* Welcome message positioned below name ASCII */}
-          <div className="mt-2 pt-0 text-terminal-bright-yellow font-mono whitespace-pre-line">
-            {profileData.welcomeMessage}
+          <div className={`mt-2 pt-0 text-terminal-bright-yellow font-mono whitespace-pre-line ${isSmallMobile ? 'text-xs' : ''}`}>
+            {isSmallMobile 
+              ? profileData.welcomeMessage.split('\n').slice(0, 2).join('\n') 
+              : profileData.welcomeMessage}
             <p className="text-xs text-terminal-gray mt-1">Last login: {new Date().toLocaleString()}</p>
           </div>
         </div>

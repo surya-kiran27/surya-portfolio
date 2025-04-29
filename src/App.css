@@ -212,11 +212,73 @@ input:focus {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .terminal-container {
-    padding: 10px;
+    padding: 8px;
+    font-size: 14px;
   }
   
   .terminal-output {
-    margin-left: 6px;
+    margin-left: 4px;
+  }
+  
+  .terminal-header {
+    padding: 8px 12px;
+  }
+  
+  .terminal-title {
+    font-size: 12px;
+  }
+  
+  .terminal-controls {
+    gap: 6px;
+  }
+  
+  .terminal-control {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .cursor-blink-fixed {
+    width: 6px;
+    height: 14px;
+  }
+  
+  /* Better touch targets */
+  .terminal-link, a {
+    padding: 4px 0;
+    display: inline-block;
+  }
+  
+  /* Adjust project cards for mobile */
+  .skills-card {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+  
+  /* Improved text readability */
+  .text-xs {
+    font-size: 11px;
+  }
+  
+  /* Optimize overflow for small screens */
+  pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 375px) {
+  .terminal-container {
+    padding: 6px;
+    font-size: 12px;
+  }
+  
+  .terminal-prompt {
+    font-size: 12px;
+  }
+  
+  .terminal-title {
+    font-size: 11px;
   }
 }
 
