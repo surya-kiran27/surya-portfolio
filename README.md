@@ -1,6 +1,7 @@
 # Surya Penumatcha - Portfolio Website
 
 This repository contains the source code for my personal portfolio website. The site showcases my skills, projects, and professional experience.
+Terminal style portfolio website built with React, TypeScript and tailwindcss.
 
 ## Website
 
