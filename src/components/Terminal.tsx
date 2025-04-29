@@ -129,9 +129,12 @@ const Terminal = ({
   const [sudoMode, setSudoMode] = useState<boolean>(false);
   const [sudoTimeLeft, setSudoTimeLeft] = useState<number>(30);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const visualViewportRef = useRef<VisualViewport | null>(null);
+  const originalViewportHeightRef = useRef<number>(0);
   const sudoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const matrixTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const matrixIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -150,6 +153,82 @@ const Terminal = ({
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Handle visual viewport changes (for mobile keyboards)
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    // Store original viewport height
+    originalViewportHeightRef.current = window.innerHeight;
+    
+    // Check if the device supports the Visual Viewport API
+    if (window.visualViewport) {
+      visualViewportRef.current = window.visualViewport;
+      
+      const handleVisualViewportResize = () => {
+        if (!visualViewportRef.current) return;
+        
+        // If the height is significantly less than original, keyboard is likely open
+        const heightDiff = originalViewportHeightRef.current - visualViewportRef.current.height;
+        const isKeyboard = heightDiff > 150; // Threshold to detect keyboard
+        
+        setIsKeyboardOpen(isKeyboard);
+        
+        // Add or remove a class to handle keyboard
+        if (isKeyboard) {
+          document.body.classList.add('keyboard-open');
+          // Ensure the input field is in view by scrolling to bottom
+          if (terminalRef.current) {
+            setTimeout(() => {
+              if (terminalRef.current) {
+                terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+              }
+            }, 100);
+          }
+        } else {
+          document.body.classList.remove('keyboard-open');
+        }
+      };
+      
+      // Listen for resize events on the visual viewport
+      visualViewportRef.current.addEventListener('resize', handleVisualViewportResize);
+      
+      return () => {
+        if (visualViewportRef.current) {
+          visualViewportRef.current.removeEventListener('resize', handleVisualViewportResize);
+        }
+        document.body.classList.remove('keyboard-open');
+      };
+    } else {
+      // Fallback for browsers without VisualViewport API
+      const handleFocusIn = () => {
+        setIsKeyboardOpen(true);
+        document.body.classList.add('keyboard-open');
+        
+        // Scroll to make input visible
+        setTimeout(() => {
+          if (terminalRef.current) {
+            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+          }
+        }, 300);
+      };
+      
+      const handleFocusOut = () => {
+        setIsKeyboardOpen(false);
+        document.body.classList.remove('keyboard-open');
+      };
+      
+      // Use focus events as fallback
+      inputRef.current?.addEventListener('focusin', handleFocusIn);
+      inputRef.current?.addEventListener('focusout', handleFocusOut);
+      
+      return () => {
+        inputRef.current?.removeEventListener('focusin', handleFocusIn);
+        inputRef.current?.removeEventListener('focusout', handleFocusOut);
+        document.body.classList.remove('keyboard-open');
+      };
+    }
+  }, [isMobile]);
 
   // Add sudo styles to head
   useEffect(() => {
@@ -1171,7 +1250,7 @@ const Terminal = ({
   return (
     <div 
       ref={terminalRef} 
-      className={`terminal-container flex-1 overflow-y-auto p-4 font-mono ${sudoMode ? 'sudo-mode' : ''} ${isMobile ? 'touch-manipulation' : ''}`}
+      className={`terminal-container flex-1 overflow-y-auto p-4 font-mono ${sudoMode ? 'sudo-mode' : ''} ${isMobile ? 'touch-manipulation' : ''} ${isKeyboardOpen ? 'keyboard-open' : ''}`}
       onClick={handleTerminalClick}
     >
       {welcomeMessage && <div className="mb-4">{welcomeMessage}</div>}
@@ -1188,7 +1267,7 @@ const Terminal = ({
       ))}
       
       {/* Current Input Line */}
-      <div className="flex items-center command-line">
+      <div id="current-input-line" className="flex items-center command-line">
         <span className="terminal-prompt mr-2">{prompt}</span>
         
         {/* Show typing animation for initial help command */}
@@ -1213,7 +1292,13 @@ const Terminal = ({
       {isMobile && (
         <div 
           className="fixed bottom-0 left-0 w-full h-16 opacity-0" 
-          onClick={() => inputRef.current?.focus()}
+          onClick={() => {
+            inputRef.current?.focus();
+            // Scroll input into view
+            setTimeout(() => {
+              document.getElementById('current-input-line')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }}
         ></div>
       )}
     </div>

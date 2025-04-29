@@ -7,6 +7,7 @@ import AsciiArt from '../components/AsciiArt';
 const Home: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
   
   // Add animation when component mounts
   useEffect(() => {
@@ -31,6 +32,47 @@ const Home: React.FC = () => {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  // Handle mobile keyboard 
+  useEffect(() => {
+    if (!isMobile) return;
+    
+    // Fix iOS height when keyboard opens
+    const metaViewport = document.querySelector('meta[name=viewport]');
+    if (!metaViewport) {
+      // Create viewport meta if it doesn't exist
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+      document.head.appendChild(meta);
+    } else {
+      // Update existing viewport meta
+      metaViewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+    }
+    
+    // Listen for resize events to detect keyboard
+    const detectKeyboard = () => {
+      // On iOS the window innerHeight changes when the keyboard opens
+      const heightDiff = window.outerHeight - window.innerHeight;
+      const newIsKeyboardOpen = heightDiff > 150;
+      
+      if (newIsKeyboardOpen !== isKeyboardOpen) {
+        setIsKeyboardOpen(newIsKeyboardOpen);
+        if (newIsKeyboardOpen) {
+          document.body.classList.add('keyboard-open');
+        } else {
+          document.body.classList.remove('keyboard-open');
+        }
+      }
+    };
+    
+    window.addEventListener('resize', detectKeyboard);
+    
+    return () => {
+      window.removeEventListener('resize', detectKeyboard);
+      document.body.classList.remove('keyboard-open');
+    };
+  }, [isMobile, isKeyboardOpen]);
   
   // Custom command handlers
   const commandHandlers = {

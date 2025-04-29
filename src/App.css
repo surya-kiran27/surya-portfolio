@@ -1,6 +1,7 @@
 #root {
   width: 100%;
   height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for mobile keyboards */
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -214,6 +215,7 @@ input:focus {
   .terminal-container {
     padding: 8px;
     font-size: 14px;
+    padding-bottom: 40vh; /* Add more space at the bottom for the keyboard */
   }
   
   .terminal-output {
@@ -311,4 +313,22 @@ input:focus {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* Mobile keyboard fixes */
+@supports (-webkit-touch-callout: none) {
+  #root {
+    /* For iOS specifically - prevents content shifting when keyboard appears */
+    height: -webkit-fill-available;
+  }
+  
+  /* For iOS Safari when keyboard opens */
+  .terminal-container {
+    height: auto;
+    min-height: 50vh;
+  }
+  
+  .keyboard-open .terminal-container {
+    padding-bottom: 30vh; /* Add extra padding when keyboard is open */
+  }
 }
