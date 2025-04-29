@@ -463,13 +463,10 @@ const Terminal = ({
         <div className="text-terminal-text animate-fadeIn">
           <p className="mb-3">My resume is available for download:</p>
           <a 
-            href="/resume.pdf" 
-            download 
+            href="https://drive.google.com/file/d/1k5MoiZ1BjONUCyMlyhwxhSDwYw6TuEZg/view?usp=sharing" 
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-block px-4 py-2 text-black bg-terminal-bright-green rounded hover:bg-terminal-green transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              window.alert('Resume download functionality will be implemented.');
-            }}
           >
             Download Resume (PDF)
           </a>
