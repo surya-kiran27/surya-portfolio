@@ -294,17 +294,20 @@ const Terminal = ({
     document.body.classList.remove('sudo-mode');
     document.body.classList.remove('matrix-effect');
     
-    // Clean up any matrix effects
-    const matrixContainer = document.querySelector('.matrix-rain-container');
-    if (matrixContainer && matrixContainer.parentNode) {
-      matrixContainer.parentNode.removeChild(matrixContainer);
-    }
+    // Clean up any matrix effects - more robust selection
+    const matrixContainers = document.querySelectorAll('.matrix-rain-container');
+    matrixContainers.forEach(container => {
+      if (container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+    });
     
-    // Clean up matrix keyframes
-    const matrixKeyframes = document.querySelector('style[data-matrix-keyframes]');
-    if (matrixKeyframes && matrixKeyframes.parentNode) {
-      matrixKeyframes.parentNode.removeChild(matrixKeyframes);
-    }
+    const matrixKeyframes = document.querySelectorAll('style[data-matrix-keyframes]');
+    matrixKeyframes.forEach(keyframe => {
+      if (keyframe.parentNode) {
+        keyframe.parentNode.removeChild(keyframe);
+      }
+    });
   };
 
   // Function to end sudo mode and clean up
@@ -312,9 +315,25 @@ const Terminal = ({
     // Use the cleanup function
     cleanupSudoMode();
     
+    // Clear matrix command timeout if active
+    if (matrixTimeoutRef.current) {
+      clearTimeout(matrixTimeoutRef.current);
+      matrixTimeoutRef.current = null;
+    }
+    
+    // Reset matrices state if active
+    if (isMatrixActive) {
+      setIsMatrixActive(false);
+    }
+    
     // Reset sudo mode state
     setSudoMode(false);
     setSudoTimeLeft(30);
+    
+    // Remove all sudo-only commands from history
+    setCommands(cmds => cmds.filter(cmd => 
+      !['sudo', 'matrix', 'hack', 'coffee'].includes(cmd.command)
+    ));
     
     // Add a "session expired" message to the terminal
     setCommands(cmds => [...cmds, {
@@ -951,7 +970,7 @@ const Terminal = ({
       
       // Set cleanup timeout
       const MATRIX_DURATION = 10;
-      setTimeout(() => {
+      matrixTimeoutRef.current = setTimeout(() => {
         // Clean up matrix effect
         document.body.classList.remove('matrix-effect');
         if (document.body.contains(matrixContainer)) {
@@ -964,6 +983,9 @@ const Terminal = ({
         // Remove the matrix command from history
         setCommands(cmds => cmds.filter(cmd => cmd.command !== 'matrix'));
         setIsMatrixActive(false);
+        
+        // Clear the timeout reference
+        matrixTimeoutRef.current = null;
       }, MATRIX_DURATION * 1000);
       
       return (
